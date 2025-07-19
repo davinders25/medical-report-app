@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fever Symptom Reporter</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 20px;
+      background-color: #121212;
+      color: #ffffff;
+    }
+    h2 {
+      text-align: center;
+      color: #90caf9;
+    }
+    .symptom {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+      gap: 10px;
+    }
+    label {
+      flex: 0 0 220px;
+      text-transform: lowercase;
+    }
+    input[type="text"] {
+      flex: 1;
+      padding: 6px;
+      background-color: #1e1e1e;
+      border: 1px solid #555;
+      color: white;
+      border-radius: 4px;
+    }
+    select {
+      width: 100%;
+      padding: 6px;
+      background-color: #1e1e1e;
+      border: 1px solid #555;
+      color: white;
+      border-radius: 4px;
+      margin-bottom: 20px;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background-color: #3949ab;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-right: 10px;
+    }
+    button:hover {
+      background-color: #5c6bc0;
+    }
+    #output {
+      margin-top: 25px;
+      padding: 15px;
+      border: 1px solid #888;
+      background: #1e1e1e;
+      white-space: pre-wrap;
+      border-radius: 6px;
+      font-size: 16px;
+    }
+    .custom-test {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .test-checkbox {
+      accent-color: #90caf9;
+      border-radius: 50%;
+    }
+    .test-group {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Fever Symptom Report Generator</h2>
+
+  <div id="symptom-list"></div>
+  <button onclick="generateReport()">Copy Report to Clipboard</button>
+  <button onclick="clearAll()">Clear All</button>
+
+  <div class="test-group">
+    <h3>Tests Already Done</h3>
+    <div id="test-list"></div>
+    <div class="custom-test">
+      <input type="text" id="new-test" placeholder="Add new test">
+      <button onclick="addTest()">Add</button>
+    </div>
+  </div>
+
+  <div id="output"></div>
+
+  <script>
+    const symptoms = [
+      "fever", "cough", "sore throat", "nasal congestion",
+      "bodyaches", "breathlessness", "rash", "diarrhea",
+      "frequency of stools", "abdominal pain", "dizziness", "headache",
+      "vomiting", "list of medicines taken"
+    ];
+
+    const tests = [
+      "HB, TLC, Platelets", "RFT", "LFT", "TSH", "ESR",
+      "Blood sugar", "HIV", "X-ray chest", "USG abdomen"
+    ];
+
+    const symptomContainer = document.getElementById('symptom-list');
+    symptoms.forEach((symptom, index) => {
+      const div = document.createElement('div');
+      div.className = 'symptom';
+      div.innerHTML = `
+        <input type="checkbox" id="symptom-${index}">
+        <label for="symptom-${index}">${symptom}</label>
+        <input type="text" placeholder="Notes" id="note-${index}">
+      `;
+      symptomContainer.appendChild(div);
+    });
+
+    const testContainer = document.getElementById('test-list');
+    function renderTests() {
+      testContainer.innerHTML = '';
+      tests.forEach((test, index) => {
+        const div = document.createElement('div');
+        div.className = 'symptom';
+        div.innerHTML = `
+          <input type="checkbox" class="test-checkbox" id="test-${index}">
+          <label for="test-${index}">${test}</label>
+        `;
+        testContainer.appendChild(div);
+      });
+    }
+
+    renderTests();
+
+    function generateReport() {
+      const lines = [];
+      symptoms.forEach((symptom, index) => {
+        const checked = document.getElementById(`symptom-${index}`).checked;
+        const note = document.getElementById(`note-${index}`).value.trim();
+        if (checked) {
+          lines.push(`${symptom}${note ? ": " + note : ""}`);
+        }
+      });
+
+      const selectedTests = tests.filter((_, index) => {
+        return document.getElementById(`test-${index}`).checked;
+      });
+      if (selectedTests.length > 0) {
+        lines.push("Tests Done: " + selectedTests.join(", "));
+      }
+
+      const report = lines.join(', ');
+      document.getElementById('output').innerText = report;
+      navigator.clipboard.writeText(report)
+        .then(() => alert('Report copied to clipboard'))
+        .catch(err => alert('Copy failed: ' + err));
+    }
+
+    function clearAll() {
+      symptoms.forEach((_, index) => {
+        document.getElementById(`symptom-${index}`).checked = false;
+        document.getElementById(`note-${index}`).value = '';
+      });
+      tests.forEach((_, index) => {
+        const el = document.getElementById(`test-${index}`);
+        if (el) el.checked = false;
+      });
+      document.getElementById('output').innerText = '';
+      document.getElementById('new-test').value = '';
+    }
+
+    function addTest() {
+      const newTest = document.getElementById('new-test').value.trim();
+      if (newTest) {
+        tests.push(newTest);
+        renderTests();
+        document.getElementById('new-test').value = '';
+        alert(`Added test: ${newTest}`);
+      }
+    }
+  </script>
+</body>
+</html>
